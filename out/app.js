@@ -56,11 +56,13 @@ function loadVideo(element) {
 
 // One seek at a time keeps fast scrolling from flooding the media decoder.
 function seekVideo() {
-  if (video.readyState >= 2 && !video.seeking && Math.abs(video.currentTime - targetTime) > .065) {
-    video.currentTime = targetTime;
+  if (video.readyState >= 1 && !video.seeking && Math.abs(video.currentTime - targetTime) > .065) {
+    try { video.currentTime = targetTime; } catch { /* Wait for the next media readiness event. */ }
   }
 }
+video.addEventListener('loadedmetadata', seekVideo);
 video.addEventListener('loadeddata', seekVideo);
+video.addEventListener('canplay', seekVideo);
 video.addEventListener('seeked', seekVideo);
 
 function measure() {
@@ -222,7 +224,7 @@ void main(){
   vec2 center=mix(vec2(.20,.02),vec2(0.,0.),travel);
   if(uMobile>.5)center=mix(vec2(.19,-.25),vec2(0.,0.),travel);
   vec2 q=uv-center;q.x*=aspect;
-  float camera=mix(uMobile>.5?7.1:4.2*max(1.,1.25/aspect),.7,travel);
+  float camera=mix(uMobile>.5?7.1:(aspect>1.65?5.7:4.9)*max(1.,1.18/aspect),1.9,travel);
   vec3 ro=vec3(0.,0.,camera);vec3 rd=normalize(vec3(q*2.6,-2.2));
   vec3 color=vec3(0.);float alpha=0.;
   float halo=exp(-dot(q,q)*3.5);color+=vec3(.17,.09,.34)*halo*.2;
@@ -267,7 +269,9 @@ void main(){
   const uniforms = Object.fromEntries(['uResolution','uPointer','uTime','uProgress','uMobile'].map(name => [name, gl.getUniformLocation(program, name)]));
   function resize() {
     const rect = scene.getBoundingClientRect();
-    const scale = Math.min(1.25, (smallScreen.matches ? 700 : 1500) / rect.width);
+    const pixelRatio = Math.min(devicePixelRatio || 1, smallScreen.matches ? 1.35 : 1.75);
+    const maxWidth = smallScreen.matches ? 900 : 3200;
+    const scale = Math.min(pixelRatio, maxWidth / Math.max(1, rect.width));
     canvas.width = Math.round(rect.width * scale);canvas.height = Math.round(rect.height * scale);
     gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(uniforms.uResolution,canvas.width,canvas.height);
   }
@@ -277,6 +281,10 @@ void main(){
 }
 
 applyMotion(reduced);
+if (!reduced) {
+  videoLoaded = true;
+  loadVideo(video);
+}
 try { orbit = createOrbit(); } catch { /* The CSS orbit remains available without WebGL. */ }
 measure();
 function frame(now) {
