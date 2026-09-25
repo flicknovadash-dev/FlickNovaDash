@@ -222,7 +222,7 @@ void main(){
   vec2 center=mix(vec2(.20,.02),vec2(0.,0.),travel);
   if(uMobile>.5)center=mix(vec2(.19,-.25),vec2(0.,0.),travel);
   vec2 q=uv-center;q.x*=aspect;
-  float camera=mix(uMobile>.5?7.1:4.2,.7,travel);
+  float camera=mix(uMobile>.5?7.1:4.2*max(1.,1.25/aspect),.7,travel);
   vec3 ro=vec3(0.,0.,camera);vec3 rd=normalize(vec3(q*2.6,-2.2));
   vec3 color=vec3(0.);float alpha=0.;
   float halo=exp(-dot(q,q)*3.5);color+=vec3(.17,.09,.34)*halo*.2;
