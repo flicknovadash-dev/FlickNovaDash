@@ -195,7 +195,7 @@ dialog.addEventListener('close', () => { film.pause(); body.classList.remove('mo
 // An original, lightweight orbital sculpture. No 3D assets or runtime library.
 function createOrbit() {
   const canvas = document.querySelector('#orbit-canvas');
-  const gl = canvas.getContext('webgl', { alpha: true, antialias: false, depth: false, powerPreference: 'low-power' });
+  const gl = canvas.getContext('webgl', { alpha: true, antialias: false, depth: false, powerPreference: 'high-performance' });
   if (!gl) return null;
   const vertex = `attribute vec2 aPosition; void main(){gl_Position=vec4(aPosition,0.,1.);}`;
   const fragment = `
@@ -244,7 +244,7 @@ void main(){
     vec3 reflection=reflect(rd,n);float strip=pow(max(0.,dot(reflection,normalize(vec3(-.5,1.3,1.)))),28.);
     float rim=pow(max(0.,dot(reflection,normalize(vec3(1.,-.3,1.)))),14.);
     color=base*(.25+diff*.6)+vec3(.80,.84,1.)*strip*1.4+vec3(.1,.8,1.)*rim*.65+base*fres*.8;
-    alpha=1.;
+    alpha=smoothstep(.006,.001,hit.x);
   }
   color+=vec3(.32,.17,.65)*glow*.35;
   float fade=1.-smoothstep(.25,.35,uProgress);color*=fade;alpha*=fade;
@@ -269,9 +269,11 @@ void main(){
   const uniforms = Object.fromEntries(['uResolution','uPointer','uTime','uProgress','uMobile'].map(name => [name, gl.getUniformLocation(program, name)]));
   function resize() {
     const rect = scene.getBoundingClientRect();
-    const pixelRatio = Math.min(devicePixelRatio || 1, smallScreen.matches ? 1.35 : 1.75);
-    const maxWidth = smallScreen.matches ? 900 : 3200;
-    const scale = Math.min(pixelRatio, maxWidth / Math.max(1, rect.width));
+    const rawPixelRatio = devicePixelRatio || 1;
+    const pixelRatio = smallScreen.matches ? Math.min(Math.max(rawPixelRatio, 1.8), 2.35) : Math.min(Math.max(rawPixelRatio, 1.2), 1.9);
+    const maxWidth = smallScreen.matches ? 1280 : 3400;
+    const maxHeight = smallScreen.matches ? 2600 : 2100;
+    const scale = Math.min(pixelRatio, maxWidth / Math.max(1, rect.width), maxHeight / Math.max(1, rect.height));
     canvas.width = Math.round(rect.width * scale);canvas.height = Math.round(rect.height * scale);
     gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(uniforms.uResolution,canvas.width,canvas.height);
   }
