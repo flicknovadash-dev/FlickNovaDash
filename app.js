@@ -229,10 +229,10 @@ void main(){
   float d=0.;vec2 hit=vec2(1.);float glow=0.;
   for(int i=0;i<64;i++){
     vec3 p=ro+rd*d;hit=field(p);glow+=exp(-abs(hit.x)*32.)*.012;
-    if(hit.x<.002||d>8.)break;
+    if(hit.x<.002||d>12.)break;
     d+=hit.x*.82;
   }
-  if(d<8.&&hit.x<.006){
+  if(d<12.&&hit.x<.006){
     vec3 p=ro+rd*d;vec2 e=vec2(.004,0.);
     vec3 n=normalize(vec3(field(p+e.xyy).x-field(p-e.xyy).x,field(p+e.yxy).x-field(p-e.yxy).x,field(p+e.yyx).x-field(p-e.yyx).x));
     vec3 l=normalize(vec3(-1.,2.,3.));float diff=max(0.,dot(n,l));
