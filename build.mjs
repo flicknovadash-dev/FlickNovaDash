@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
-const files = ['index.html', 'styles.css', 'app.js', 'assets/orbit-symbol.webp', 'assets/game-icon.jpg', 'assets/gameplay-story.mp4', 'assets/story-poster.jpg', 'assets/gameplay.vtt'];
+const files = ['index.html', 'styles.css', 'app.js', 'robots.txt', 'sitemap.xml', 'assets/orbit-symbol.webp', 'assets/game-icon.jpg', 'assets/gameplay-story.mp4', 'assets/story-poster.jpg', 'assets/gameplay.vtt'];
 const html = await readFile(resolve(root, 'index.html'), 'utf8');
 for (const [, target] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
   if (!/^(?:https?:|#|data:)/.test(target)) await access(resolve(root, target));
