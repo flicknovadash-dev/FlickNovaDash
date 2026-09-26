@@ -28,6 +28,7 @@ let inView = true;
 let videoLoaded = false;
 let targetTime = 0;
 let lastFrame = 0;
+let pendingSeek = false;
 let pointer = [0, 0];
 let orbit = null;
 let journeyTop = 0;
@@ -52,18 +53,35 @@ function loadVideo(element) {
     element.preload = 'auto';
     element.load();
   }
+  else if (!element.currentSrc) element.load();
 }
 
 // One seek at a time keeps fast scrolling from flooding the media decoder.
 function seekVideo() {
-  if (video.readyState >= 1 && !video.seeking && Math.abs(video.currentTime - targetTime) > .065) {
-    try { video.currentTime = targetTime; } catch { /* Wait for the next media readiness event. */ }
+  if (video.readyState < 1) {
+    pendingSeek = true;
+    loadVideo(video);
+    return;
+  }
+  if (video.seeking) {
+    pendingSeek = true;
+    return;
+  }
+  if (Math.abs(video.currentTime - targetTime) > .065) {
+    pendingSeek = false;
+    try { video.currentTime = targetTime; } catch { pendingSeek = true; }
+  }
+  else pendingSeek = false;
+}
+function syncVideoFrame() {
+  if (pendingSeek || Math.abs(video.currentTime - targetTime) > .065) {
+    seekVideo();
   }
 }
-video.addEventListener('loadedmetadata', seekVideo);
-video.addEventListener('loadeddata', seekVideo);
-video.addEventListener('canplay', seekVideo);
-video.addEventListener('seeked', seekVideo);
+video.addEventListener('loadedmetadata', syncVideoFrame);
+video.addEventListener('loadeddata', syncVideoFrame);
+video.addEventListener('canplay', syncVideoFrame);
+video.addEventListener('seeked', syncVideoFrame);
 
 function measure() {
   journeyTop = journey.getBoundingClientRect().top + scrollY;
